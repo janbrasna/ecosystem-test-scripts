@@ -13,10 +13,10 @@
     "test_metadata": [
         {
             "classname": "test_class",
-            "name": "test_system_out",
-            "result": "system-out",
+            "name": "test_success",
+            "result": "success",
             "message": "",
-            "run_time": 1.23,
+            "run_time": 1.5,
             "source": "test_source"
         }
     ]

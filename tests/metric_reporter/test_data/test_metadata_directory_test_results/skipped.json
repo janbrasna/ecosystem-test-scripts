@@ -13,10 +13,10 @@
     "test_metadata": [
         {
             "classname": "test_class",
-            "name": "test_unknown",
-            "result": "system-err",
+            "name": "test_skipped",
+            "result": "skipped",
             "message": "",
-            "run_time": 1.23,
+            "run_time": 1.4,
             "source": "test_source"
         }
     ]

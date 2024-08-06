@@ -72,10 +72,9 @@ class CircleCIJsonParser:
                                      files, or if there are issues with parsing the JSON data.
         """
         test_metadata_path = Path(test_metadata_directory)
-        if not test_metadata_path.is_dir():
-            raise CircleCIJsonParserError(
-                f"The test_metadata_directory, {test_metadata_directory}, does not exist"
-            )
+        if not test_metadata_directory or not test_metadata_path.is_dir():
+            self.logger.warning(f"There is no test metadata to parse in {test_metadata_path}")
+            return []
 
         results: list[CircleCIJobTestMetadata] = []
 
