@@ -89,7 +89,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded affix "><li class="part-title">Reference Guide</li><li class="chapter-item expanded "><a href="testing-101/index.html"><strong aria-hidden="true">1.</strong> Testing 101</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Resources</div></li><li class="chapter-item expanded affix "><li class="part-title">Developer Guide</li><li class="chapter-item expanded "><a href="cli/index.html"><strong aria-hidden="true">3.</strong> Command Line Tool</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="cli/install.html"><strong aria-hidden="true">3.1.</strong> install</a></li><li class="chapter-item expanded "><a href="cli/clean.html"><strong aria-hidden="true">3.2.</strong> clean</a></li><li class="chapter-item expanded "><a href="cli/check.html"><strong aria-hidden="true">3.3.</strong> check</a></li><li class="chapter-item expanded "><a href="cli/format.html"><strong aria-hidden="true">3.4.</strong> format</a></li><li class="chapter-item expanded "><a href="cli/test.html"><strong aria-hidden="true">3.5.</strong> test</a></li><li class="chapter-item expanded "><a href="cli/test_coverage.html"><strong aria-hidden="true">3.6.</strong> test_coverage</a></li><li class="chapter-item expanded "><a href="cli/test_coverage_html.html"><strong aria-hidden="true">3.7.</strong> test_coverage_html</a></li><li class="chapter-item expanded "><a href="cli/run_circleci_scraper.html"><strong aria-hidden="true">3.8.</strong> run_circleci_scraper</a></li><li class="chapter-item expanded "><a href="cli/run_test_metric_reporter.html"><strong aria-hidden="true">3.9.</strong> run_test_metric_reporter</a></li></ol></li><li class="chapter-item expanded "><li class="spacer"></li><li class="chapter-item expanded affix "><a href="contributors.html">Contributors</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded affix "><li class="part-title">Reference Guide</li><li class="chapter-item expanded "><a href="testing-101/index.html"><strong aria-hidden="true">1.</strong> Testing 101</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Resources</div></li><li class="chapter-item expanded affix "><li class="part-title">Developer Guide</li><li class="chapter-item expanded "><a href="cli/index.html"><strong aria-hidden="true">3.</strong> Command Line Tool</a></li><li class="chapter-item expanded affix "><li class="spacer"></li><li class="chapter-item expanded affix "><a href="contributors.html">Contributors</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -185,82 +185,104 @@
 <li>Grit and determination</li>
 </ul>
 <h2 id="installation"><a class="header" href="#installation">INSTALLATION</a></h2>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="install"><a class="header" href="#install"><code>install</code></a></h1>
+<ul>
+<li>TODO</li>
+</ul>
+<h2 id="commands"><a class="header" href="#commands">COMMANDS</a></h2>
+<ul>
+<li><a href="cli/index.html#check"><code>check</code></a> -- Run linting, formatting, security, and type checks.</li>
+<li><a href="cli/index.html#clean"><code>clean</code></a> -- Clean up installation and cache files.</li>
+<li><a href="cli/index.html#format"><code>format</code></a> -- Apply formatting.</li>
+<li><a href="cli/index.html#install"><code>install</code></a> -- Install dependencies.</li>
+<li><a href="cli/index.html#run_circleci_scraper"><code>run_circleci_scraper</code></a> -- Run the CircleCI scraper.</li>
+<li><a href="cli/index.html#run_metric_reporter"><code>run_metric_reporter</code></a> -- Run the Test Metric Reporter.</li>
+<li><a href="cli/index.html#test"><code>test</code></a> -- Run tests.</li>
+<li><a href="cli/index.html#test_coverage"><code>test_coverage</code></a> -- Run tests with coverage reporting.</li>
+<li><a href="cli/index.html#test_coverage_html"><code>test_coverage_html</code></a> -- Run tests and generate HTML coverage report.</li>
+</ul>
+<hr />
+<h3 id="install"><a class="header" href="#install"><code>install</code></a></h3>
 <p>Install dependencies.</p>
-<h2 id="usage"><a class="header" href="#usage">USAGE</a></h2>
+<h4 id="usage"><a class="header" href="#usage">USAGE</a></h4>
 <pre><code class="language-sh">make install
 </code></pre>
-<h2 id="see-also"><a class="header" href="#see-also">SEE ALSO</a></h2>
+<h4 id="see-also"><a class="header" href="#see-also">SEE ALSO</a></h4>
 <ul>
-<li><a href="cli/./clean.html"><code>clean</code></a> -- Clean up installation and cache files.</li>
+<li><a href="cli/index.html#clean"><code>clean</code></a> -- Clean up installation and cache files.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="clean"><a class="header" href="#clean"><code>clean</code></a></h1>
+<hr />
+<h3 id="clean"><a class="header" href="#clean"><code>clean</code></a></h3>
 <p>Clean up installation and cache files.</p>
-<h2 id="usage-1"><a class="header" href="#usage-1">USAGE</a></h2>
+<h4 id="usage-1"><a class="header" href="#usage-1">USAGE</a></h4>
 <pre><code class="language-sh">make clean
 </code></pre>
-<h2 id="see-also-1"><a class="header" href="#see-also-1">SEE ALSO</a></h2>
+<h4 id="see-also-1"><a class="header" href="#see-also-1">SEE ALSO</a></h4>
 <ul>
-<li><a href="cli/./install.html"><code>install</code></a> -- Install dependencies.</li>
+<li><a href="cli/index.html#install"><code>install</code></a> -- Install dependencies.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="check"><a class="header" href="#check"><code>check</code></a></h1>
+<hr />
+<h3 id="check"><a class="header" href="#check"><code>check</code></a></h3>
 <p>Run linting, formatting, security, and type checks.</p>
 <p>This script uses the following tools:</p>
 <ul>
 <li><code>ruff</code> -- check for linting issues and code formatting.</li>
-<li><code>bandit</code> -- check for  security issues.</li>
+<li><code>bandit</code> -- check for security issues.</li>
 <li><code>mypy</code> -- check for type issues.</li>
 </ul>
-<h2 id="usage-2"><a class="header" href="#usage-2">USAGE</a></h2>
+<h4 id="usage-2"><a class="header" href="#usage-2">USAGE</a></h4>
 <pre><code class="language-sh">make check
 </code></pre>
-<h2 id="see-also-2"><a class="header" href="#see-also-2">SEE ALSO</a></h2>
+<h4 id="see-also-2"><a class="header" href="#see-also-2">SEE ALSO</a></h4>
 <ul>
-<li><a href="cli/./format.html"><code>format</code></a> -- Apply formatting.</li>
+<li><a href="cli/index.html#format"><code>format</code></a> -- Apply formatting.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="format"><a class="header" href="#format"><code>format</code></a></h1>
+<hr />
+<h3 id="format"><a class="header" href="#format"><code>format</code></a></h3>
 <p>Apply formatting.</p>
 <p>This script will use <code>ruff</code> to automatically fix linting issues and format the code.</p>
-<h2 id="usage-3"><a class="header" href="#usage-3">USAGE</a></h2>
+<h4 id="usage-3"><a class="header" href="#usage-3">USAGE</a></h4>
 <pre><code class="language-sh">make format
 </code></pre>
-<h2 id="see-also-3"><a class="header" href="#see-also-3">SEE ALSO</a></h2>
+<h4 id="see-also-3"><a class="header" href="#see-also-3">SEE ALSO</a></h4>
 <ul>
-<li><a href="cli/./check.html"><code>check</code></a> -- Run linting, formatting, security, and type checks.</li>
+<li><a href="cli/index.html#check"><code>check</code></a> -- Run linting, formatting, security, and type checks.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="test"><a class="header" href="#test"><code>test</code></a></h1>
+<hr />
+<h3 id="test"><a class="header" href="#test"><code>test</code></a></h3>
 <p>Run tests.</p>
-<h2 id="usage-4"><a class="header" href="#usage-4">USAGE</a></h2>
+<h4 id="usage-4"><a class="header" href="#usage-4">USAGE</a></h4>
 <pre><code class="language-sh">make test
 </code></pre>
-<h2 id="see-also-4"><a class="header" href="#see-also-4">SEE ALSO</a></h2>
+<h4 id="see-also-4"><a class="header" href="#see-also-4">SEE ALSO</a></h4>
 <ul>
-<li><a href="cli/./test_coverage.html"><code>test_coverage</code></a> -- Run tests with coverage reporting.</li>
-<li><a href="cli/./test_coverage_html.html"><code>test_coverage_html</code></a> -- Run tests and generate HTML coverage report.</li>
+<li><a href="cli/index.html#test_coverage"><code>test_coverage</code></a> -- Run tests with coverage reporting.</li>
+<li><a href="cli/index.html#test_coverage_html"><code>test_coverage_html</code></a> -- Run tests and generate HTML coverage report.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="test_coverage"><a class="header" href="#test_coverage"><code>test_coverage</code></a></h1>
+<hr />
+<h3 id="test_coverage"><a class="header" href="#test_coverage"><code>test_coverage</code></a></h3>
 <p>Run tests with coverage reporting.</p>
-<h2 id="usage-5"><a class="header" href="#usage-5">USAGE</a></h2>
+<h4 id="usage-5"><a class="header" href="#usage-5">USAGE</a></h4>
 <pre><code class="language-sh">make test_coverage
 </code></pre>
-<h2 id="see-also-5"><a class="header" href="#see-also-5">SEE ALSO</a></h2>
+<h4 id="see-also-5"><a class="header" href="#see-also-5">SEE ALSO</a></h4>
 <ul>
-<li><a href="cli/./test.html"><code>test</code></a> -- Run tests.</li>
-<li><a href="cli/./test_coverage_html.html"><code>test_coverage_html</code></a> -- Run tests and generate HTML coverage report.</li>
+<li><a href="cli/index.html#test"><code>test</code></a> -- Run tests.</li>
+<li><a href="cli/index.html#test_coverage_html"><code>test_coverage_html</code></a> -- Run tests and generate HTML coverage report.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="test_coverage_html"><a class="header" href="#test_coverage_html"><code>test_coverage_html</code></a></h1>
+<h3 id="test_coverage_html"><a class="header" href="#test_coverage_html"><code>test_coverage_html</code></a></h3>
 <p>Run tests and generate HTML coverage report.</p>
-<h2 id="usage-6"><a class="header" href="#usage-6">USAGE</a></h2>
+<h4 id="usage-6"><a class="header" href="#usage-6">USAGE</a></h4>
 <pre><code class="language-sh">make test_coverage_html
 </code></pre>
-<h2 id="see-also-6"><a class="header" href="#see-also-6">SEE ALSO</a></h2>
+<h4 id="see-also-6"><a class="header" href="#see-also-6">SEE ALSO</a></h4>
 <ul>
-<li><a href="cli/./test.html"><code>test</code></a> -- Run tests.</li>
-<li><a href="cli/./test_coverage.html"><code>test_coverage</code></a> -- Run tests with coverage reporting.</li>
+<li><a href="cli/index.html#test"><code>test</code></a> -- Run tests.</li>
+<li><a href="cli/index.html#test_coverage"><code>test_coverage</code></a> -- Run tests with coverage reporting.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="run_circleci_scraper"><a class="header" href="#run_circleci_scraper"><code>run_circleci_scraper</code></a></h1>
+<hr />
+<h3 id="run_circleci_scraper"><a class="header" href="#run_circleci_scraper"><code>run_circleci_scraper</code></a></h3>
 <p>Run the CircleCI scraper.</p>
-<h2 id="usage-7"><a class="header" href="#usage-7">USAGE</a></h2>
+<h4 id="usage-7"><a class="header" href="#usage-7">USAGE</a></h4>
 <pre><code class="language-sh">make run_circleci_scraper
 </code></pre>
 <p>In order to use this command, you need to make sure you set your <a href="https://circleci.com/docs/managing-api-tokens/">personal CircleCI token</a> in your local config.ini file, as seen below:</p>
@@ -273,18 +295,19 @@ token = &lt;YoUr_tOkEn_hErE&gt;
 days_of_data = 7
 </code></pre>
 <p>If you have the previous day's data stored locally, the cached data will be used and not re-fetched from CircleCI.</p>
-<h2 id="see-also-7"><a class="header" href="#see-also-7">SEE ALSO</a></h2>
+<h4 id="see-also-7"><a class="header" href="#see-also-7">SEE ALSO</a></h4>
 <ul>
-<li><a href="cli/./run_test_metric_reporter.html"><code>run_test_metric_reporter</code></a> -- Run the Test Metric Reporter.</li>
+<li><a href="cli/index.html#run_metric_reporter"><code>run_metric_reporter</code></a> -- Run the Test Metric Reporter.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="run_test_metric_reporter"><a class="header" href="#run_test_metric_reporter"><code>run_test_metric_reporter</code></a></h1>
+<hr />
+<h3 id="run_metric_reporter"><a class="header" href="#run_metric_reporter"><code>run_metric_reporter</code></a></h3>
 <p>Run the Test Metric Reporter.</p>
-<h2 id="usage-8"><a class="header" href="#usage-8">USAGE</a></h2>
-<pre><code class="language-sh">make run_test_metric_reporter
+<h4 id="usage-8"><a class="header" href="#usage-8">USAGE</a></h4>
+<pre><code class="language-sh">make run_metric_reporter
 </code></pre>
-<h2 id="see-also-8"><a class="header" href="#see-also-8">SEE ALSO</a></h2>
+<h4 id="see-also-8"><a class="header" href="#see-also-8">SEE ALSO</a></h4>
 <ul>
-<li><a href="cli/./run_circleci_scraper.html"><code>run_circleci_scraper</code></a> -- Run the CircleCI scraper.</li>
+<li><a href="cli/index.html#run_circleci_scraper"><code>run_circleci_scraper</code></a> -- Run the CircleCI scraper.</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="contributors"><a class="header" href="#contributors">Contributors</a></h1>
 <ul>
