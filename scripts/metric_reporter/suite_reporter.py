@@ -193,8 +193,8 @@ class SuiteReporter:
         self.results: list[SuiteReporterResult] = self._parse_results()
 
     def _parse_results(self) -> list[SuiteReporterResult]:
-        artifact_results_dict: dict[int, SuiteReporterResult] = self._parse_junit_xmls()
         metadata_results_dict: dict[int, SuiteReporterResult] = self._parse_circleci_metadata()
+        artifact_results_dict: dict[int, SuiteReporterResult] = self._parse_junit_xmls()
 
         # Reconcile data preferring artifact results, but use 'job_execution_time' from metadata
         # results if available
@@ -211,6 +211,45 @@ class SuiteReporter:
         # Sort by timestamp and then by job
         sorted_results = sorted(results, key=lambda result: (result.timestamp, result.job))
         return sorted_results
+
+    def _parse_circleci_metadata(self) -> dict[int, SuiteReporterResult]:
+        results: dict[int, SuiteReporterResult] = {}
+        circleci_parser = CircleCIJsonParser()
+        for job_test_metadata in circleci_parser.parse(self._test_metadata_directory):
+            if (
+                not job_test_metadata.test_metadata
+                or job_test_metadata.job.status == CANCELED_JOB_STATUS
+            ):
+                continue
+
+            started_at = datetime.strptime(job_test_metadata.job.started_at, DATETIME_FORMAT)
+            stopped_at = datetime.strptime(job_test_metadata.job.stopped_at, DATETIME_FORMAT)
+            job_execution_time = (stopped_at - started_at).total_seconds()
+            test_suite_result = SuiteReporterResult(
+                repository=self._repository,
+                workflow=self._workflow,
+                test_suite=self._test_suite,
+                job=job_test_metadata.job.job_number,
+                date=started_at.strftime(DATE_FORMAT),
+                timestamp=job_test_metadata.job.started_at,
+                job_execution_time=job_execution_time,
+            )
+
+            run_time: float = 0
+            for test in job_test_metadata.test_metadata:
+                run_time += test.run_time
+                if test.result in SUCCESS_RESULTS:
+                    test_suite_result.success += 1
+                elif test.result == FAILURE_RESULT:
+                    test_suite_result.failure += 1
+                elif test.result == SKIPPED_RESULT:
+                    test_suite_result.skipped += 1
+                else:
+                    test_suite_result.unknown += 1
+            test_suite_result.run_time = round(run_time, 3)
+
+            results[job_test_metadata.job.job_number] = test_suite_result
+        return results
 
     def _parse_junit_xmls(self) -> dict[int, SuiteReporterResult]:
         results: dict[int, SuiteReporterResult] = {}
@@ -273,45 +312,6 @@ class SuiteReporter:
             test_suite_result.run_time = round(sum(run_times), 3)
             test_suite_result.execution_time = round(max(execution_times), 3)
             results[job_test_suites.job] = test_suite_result
-        return results
-
-    def _parse_circleci_metadata(self) -> dict[int, SuiteReporterResult]:
-        results: dict[int, SuiteReporterResult] = {}
-        circleci_parser = CircleCIJsonParser()
-        for job_test_metadata in circleci_parser.parse(self._test_metadata_directory):
-            if (
-                not job_test_metadata.test_metadata
-                or job_test_metadata.job.status == CANCELED_JOB_STATUS
-            ):
-                continue
-
-            started_at = datetime.strptime(job_test_metadata.job.started_at, DATETIME_FORMAT)
-            stopped_at = datetime.strptime(job_test_metadata.job.stopped_at, DATETIME_FORMAT)
-            job_execution_time = (stopped_at - started_at).total_seconds()
-            test_suite_result = SuiteReporterResult(
-                repository=self._repository,
-                workflow=self._workflow,
-                test_suite=self._test_suite,
-                job=job_test_metadata.job.job_number,
-                date=started_at.strftime(DATE_FORMAT),
-                timestamp=job_test_metadata.job.started_at,
-                job_execution_time=job_execution_time,
-            )
-
-            run_time: float = 0
-            for test in job_test_metadata.test_metadata:
-                run_time += test.run_time
-                if test.result in SUCCESS_RESULTS:
-                    test_suite_result.success += 1
-                elif test.result == FAILURE_RESULT:
-                    test_suite_result.failure += 1
-                elif test.result == SKIPPED_RESULT:
-                    test_suite_result.skipped += 1
-                else:
-                    test_suite_result.unknown += 1
-            test_suite_result.run_time = round(run_time, 3)
-
-            results[job_test_metadata.job.job_number] = test_suite_result
         return results
 
     def _check_for_mismatch(
