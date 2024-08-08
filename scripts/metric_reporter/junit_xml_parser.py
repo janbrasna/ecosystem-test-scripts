@@ -15,20 +15,20 @@ from pydantic import BaseModel, ValidationError
 from scripts.common.error import BaseError
 
 
-class Property(BaseModel):
+class JUnitXMLProperty(BaseModel):
     """Represents a property of a test case."""
 
     name: str
     value: str
 
 
-class Skipped(BaseModel):
+class JUnitXMLSkipped(BaseModel):
     """Represents a skipped test case."""
 
     reason: str | None = None
 
 
-class Failure(BaseModel):
+class JUnitXMLFailure(BaseModel):
     """Represents a failure of a test case."""
 
     message: str
@@ -48,9 +48,9 @@ class JUnitXMLTestCase(BaseModel):
     name: str
     classname: str | None = None
     time: float | None = None
-    properties: list[Property] | None = None
-    skipped: Skipped | None = None
-    failure: Failure | None = None
+    properties: list[JUnitXMLProperty] | None = None
+    skipped: JUnitXMLSkipped | None = None
+    failure: JUnitXMLFailure | None = None
     system_out: JUnitXMLSystemOut | None = None
 
 
