@@ -224,8 +224,14 @@ class SuiteReporter:
             )
 
             run_times: list[float] = []
+            execution_times: list[float] = []
             for test_suites in job_test_suites.test_suites:
                 run_time: float = 0
+                # Jest and Playwright JUnit XMLs only have a top level time. The top level time may
+                # not be equal to the sum of the test case times due to the use of threads/workers.
+                execution_time: float | None = (
+                    test_suites.time if test_suites.time and test_suites.time > 0 else None
+                )
                 for test_suite in test_suites.test_suites:
                     if not test_suite_result.date and test_suite.timestamp:
                         test_suite_result.timestamp = test_suite.timestamp
@@ -244,11 +250,11 @@ class SuiteReporter:
                         if test_case.time:
                             run_time += test_case.time
 
-                        # Count properties named "fixme", Playwright only
-                        if test_case.properties:
-                            test_suite_result.fixme += sum(
-                                1 for prop in test_case.properties if prop.name == "fixme"
-                            )
+                        # Increment "fixme" count , Playwright only
+                        if test_case.properties and any(
+                            prop.name == "fixme" for prop in test_case.properties
+                        ):
+                            test_suite_result.fixme += 1
 
                         # Check for retry condition
                         # An assumption is made that the presence of a nested system-out tag in a
@@ -261,8 +267,11 @@ class SuiteReporter:
                         ):
                             test_suite_result.retry += 1
                 run_times.append(run_time)
+                # If a time at the test suites level is not provided, then use the summation of
+                # times at the test case level, or run_time.
+                execution_times.append(execution_time if execution_time is not None else run_time)
             test_suite_result.run_time = round(sum(run_times), 3)
-            test_suite_result.execution_time = round(max(run_times), 3)
+            test_suite_result.execution_time = round(max(execution_times), 3)
             results[job_test_suites.job] = test_suite_result
         return results
 
