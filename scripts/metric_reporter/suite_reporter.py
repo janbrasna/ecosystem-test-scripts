@@ -14,9 +14,8 @@ from typing import Any
 from pydantic import BaseModel
 
 from scripts.common.error import BaseError
-from scripts.metric_reporter.circleci_json_parser import CircleCIJsonParser
-from scripts.metric_reporter.config import MetricReporterArgs
-from scripts.metric_reporter.junit_xml_parser import JUnitXmlParser
+from scripts.metric_reporter.circleci_json_parser import CircleCIJobTestMetadata
+from scripts.metric_reporter.junit_xml_parser import JUnitXMLJobTestSuites
 
 DATE_FORMAT = "%Y-%m-%d"
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
@@ -172,29 +171,41 @@ class SuiteReporter:
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self, args: MetricReporterArgs) -> None:
+    def __init__(
+        self,
+        repository: str,
+        workflow: str,
+        test_suite_name: str,
+        circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None,
+        junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None,
+    ) -> None:
         """Initialize the reporter with the directory containing test result data.
 
         Args:
-            args (MetricReporterArgs): MetricReporter script arguments.
-
-        Raises:
-            CircleCIJsonParserError: If there is an error parsing the test metadata.
-            JUnitXmlParserError: If there is an error parsing JUnit XML test results.
+            repository (str): The repository associated to the test suite.
+            workflow (str): The workflow associated to the test suite.
+            test_suite_name (str): The test suite name.
+            circleci_job_test_metadata_list (list[CircleCIJobTestMetadata]) The metadata from CircleCI test jobs.
+            junit_xml_job_test_suites_list (list[JUnitXMLJobTestSuites]) The test results from JUnit XML artifacts.
         """
-        self._repository = args.repository
-        self._workflow = args.workflow
-        self._test_suite = args.test_suite
-        # Path to the directory with JUnit XML test results
-        self._test_artifact_directory: str = args.test_artifact_directory_path
-        # Path to the directory with CircleCI test metadata.
-        self._test_metadata_directory: str = args.test_metadata_directory_path
+        self._repository = repository
+        self._workflow = workflow
+        self._test_suite_name = test_suite_name
+        self.results: list[SuiteReporterResult] = self._parse_results(
+            circleci_job_test_metadata_list, junit_xml_job_test_suites_list
+        )
 
-        self.results: list[SuiteReporterResult] = self._parse_results()
-
-    def _parse_results(self) -> list[SuiteReporterResult]:
-        metadata_results_dict: dict[int, SuiteReporterResult] = self._parse_circleci_metadata()
-        artifact_results_dict: dict[int, SuiteReporterResult] = self._parse_junit_xmls()
+    def _parse_results(
+        self,
+        circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None,
+        junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None,
+    ) -> list[SuiteReporterResult]:
+        metadata_results_dict: dict[int, SuiteReporterResult] = self._parse_circleci_metadata(
+            circleci_job_test_metadata_list
+        )
+        artifact_results_dict: dict[int, SuiteReporterResult] = self._parse_junit_xmls(
+            junit_xml_job_test_suites_list
+        )
 
         # Reconcile data preferring artifact results, but use 'job_execution_time' from metadata
         # results if available
@@ -212,10 +223,14 @@ class SuiteReporter:
         sorted_results = sorted(results, key=lambda result: (result.timestamp, result.job))
         return sorted_results
 
-    def _parse_circleci_metadata(self) -> dict[int, SuiteReporterResult]:
+    def _parse_circleci_metadata(
+        self, circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None
+    ) -> dict[int, SuiteReporterResult]:
         results: dict[int, SuiteReporterResult] = {}
-        circleci_parser = CircleCIJsonParser()
-        for job_test_metadata in circleci_parser.parse(self._test_metadata_directory):
+        if not circleci_job_test_metadata_list:
+            return results
+
+        for job_test_metadata in circleci_job_test_metadata_list:
             if (
                 not job_test_metadata.test_metadata
                 or job_test_metadata.job.status == CANCELED_JOB_STATUS
@@ -228,7 +243,7 @@ class SuiteReporter:
             test_suite_result = SuiteReporterResult(
                 repository=self._repository,
                 workflow=self._workflow,
-                test_suite=self._test_suite,
+                test_suite=self._test_suite_name,
                 job=job_test_metadata.job.job_number,
                 date=started_at.strftime(DATE_FORMAT),
                 timestamp=job_test_metadata.job.started_at,
@@ -251,14 +266,18 @@ class SuiteReporter:
             results[job_test_metadata.job.job_number] = test_suite_result
         return results
 
-    def _parse_junit_xmls(self) -> dict[int, SuiteReporterResult]:
+    def _parse_junit_xmls(
+        self, junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None
+    ) -> dict[int, SuiteReporterResult]:
         results: dict[int, SuiteReporterResult] = {}
-        junit_xml_parser = JUnitXmlParser()
-        for job_test_suites in junit_xml_parser.parse(self._test_artifact_directory):
+        if not junit_xml_job_test_suites_list:
+            return results
+
+        for job_test_suites in junit_xml_job_test_suites_list:
             test_suite_result = SuiteReporterResult(
                 repository=self._repository,
                 workflow=self._workflow,
-                test_suite=self._test_suite,
+                test_suite=self._test_suite_name,
                 job=job_test_suites.job,
             )
 

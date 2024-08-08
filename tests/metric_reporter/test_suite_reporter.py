@@ -5,27 +5,372 @@
 """Tests for the SuiteReporter module."""
 
 import logging
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
 from pytest import LogCaptureFixture
 from pytest_mock import MockerFixture
 
-from scripts.metric_reporter.config import MetricReporterArgs
+from scripts.metric_reporter.circleci_json_parser import (
+    CircleCIJobTestMetadata,
+    CircleCITestMetadata,
+    CircleCIJob,
+)
+from scripts.metric_reporter.junit_xml_parser import (
+    JUnitXMLFailure,
+    JUnitXMLJobTestSuites,
+    JUnitXMLProperty,
+    JUnitXMLSkipped,
+    JUnitXMLSystemOut,
+    JUnitXMLTestCase,
+    JUnitXMLTestSuite,
+    JUnitXMLTestSuites,
+)
 from scripts.metric_reporter.suite_reporter import SuiteReporter, SuiteReporterResult
 
-TEST_ARTIFACT_DIRECTORY_TEST_RESULTS = str(
-    Path(__file__).parent / "test_data" / "test_artifact_directory_test_results"
-)
-TEST_METADATA_DIRECTORY_EMPTY_TEST_RESULTS = str(
-    Path(__file__).parent / "test_data" / "test_metadata_directory_empty_test_results"
-)
-TEST_METADATA_DIRECTORY_TEST_RESULTS = str(
-    Path(__file__).parent / "test_data" / "test_metadata_directory_test_results"
-)
+CIRCLECI_JOB_TEST_METADATA_LIST: list[CircleCIJobTestMetadata] | None = [
+    CircleCIJobTestMetadata(
+        job=CircleCIJob(
+            dependencies=[],
+            job_number=1,
+            id="1",
+            started_at="2024-01-01T00:00:00Z",
+            name="test-job",
+            project_slug="test/test-project",
+            status="failed",
+            type="build",
+            stopped_at="2024-01-01T01:00:00Z",
+        ),
+        test_metadata=[
+            CircleCITestMetadata(
+                classname="test_class",
+                name="test_failure",
+                result="failure",
+                message="",
+                run_time=1.1,
+                source="test_source",
+            )
+        ],
+    ),
+    CircleCIJobTestMetadata(
+        job=CircleCIJob(
+            dependencies=[],
+            job_number=2,
+            id="2",
+            started_at="2024-01-02T00:00:00Z",
+            name="test-job",
+            project_slug="test/test-project",
+            status="success",
+            type="build",
+            stopped_at="2024-01-02T01:00:00Z",
+        ),
+        test_metadata=[
+            CircleCITestMetadata(
+                classname="test_class",
+                name="test_fixme",
+                result="skipped",
+                message="",
+                run_time=1.2,
+                source="test_source",
+            )
+        ],
+    ),
+    CircleCIJobTestMetadata(
+        job=CircleCIJob(
+            dependencies=[],
+            job_number=3,
+            id="3",
+            started_at="2024-01-03T00:00:00Z",
+            name="test-job",
+            project_slug="test/test-project",
+            status="success",
+            type="build",
+            stopped_at="2024-01-03T01:00:00Z",
+        ),
+        test_metadata=[
+            CircleCITestMetadata(
+                classname="test_class",
+                name="test_retry",
+                result="system-out",
+                message="",
+                run_time=1.3,
+                source="test_source",
+            )
+        ],
+    ),
+    CircleCIJobTestMetadata(
+        job=CircleCIJob(
+            dependencies=[],
+            job_number=4,
+            id="4",
+            started_at="2024-01-04T00:00:00Z",
+            name="test-job",
+            project_slug="test/test-project",
+            status="success",
+            type="build",
+            stopped_at="2024-01-04T01:00:00Z",
+        ),
+        test_metadata=[
+            CircleCITestMetadata(
+                classname="test_class",
+                name="test_skipped",
+                result="skipped",
+                message="",
+                run_time=1.4,
+                source="test_source",
+            )
+        ],
+    ),
+    CircleCIJobTestMetadata(
+        job=CircleCIJob(
+            dependencies=[],
+            job_number=5,
+            id="5",
+            started_at="2024-01-05T00:00:00Z",
+            name="test-job",
+            project_slug="test/test-project",
+            status="success",
+            type="build",
+            stopped_at="2024-01-05T01:00:00Z",
+        ),
+        test_metadata=[
+            CircleCITestMetadata(
+                classname="test_class",
+                name="test_success",
+                result="success",
+                message="",
+                run_time=1.5,
+                source="test_source",
+            )
+        ],
+    ),
+    CircleCIJobTestMetadata(
+        job=CircleCIJob(
+            dependencies=[],
+            job_number=6,
+            id="6",
+            started_at="2024-01-06T00:00:00Z",
+            name="test-job",
+            project_slug="test/test-project",
+            status="success",
+            type="build",
+            stopped_at="2024-01-06T01:00:00Z",
+        ),
+        test_metadata=[
+            CircleCITestMetadata(
+                classname="test_class",
+                name="test_unknown",
+                result="system-err",
+                message="",
+                run_time=1.6,
+                source="test_source",
+            )
+        ],
+    ),
+]
 
-EXPECTED_ARTIFACT_RESULTS = [
+JUNIT_XML_JOB_TEST_SUITES_LIST: list[JUnitXMLJobTestSuites] | None = [
+    JUnitXMLJobTestSuites(
+        job=1,
+        test_suites=[
+            JUnitXMLTestSuites(
+                id="",
+                name="",
+                tests=1,
+                failures=1,
+                skipped=0,
+                errors=0,
+                time=1.1,
+                timestamp=None,
+                test_suites=[
+                    JUnitXMLTestSuite(
+                        name="test_class",
+                        timestamp="2024-01-01T00:00:00Z",
+                        hostname="local",
+                        tests=1,
+                        failures=1,
+                        skipped=0,
+                        time=1.1,
+                        errors=0,
+                        test_cases=[
+                            JUnitXMLTestCase(
+                                name="test_failure",
+                                classname="test_class",
+                                time=1.1,
+                                properties=None,
+                                skipped=None,
+                                failure=JUnitXMLFailure(
+                                    message="test_class:1:1 test_failure",
+                                    type="FAILURE",
+                                    text="\n                Error Msg\n            ",
+                                ),
+                                system_out=JUnitXMLSystemOut(
+                                    text="\n                \n[[ATTACHMENT|../test_class/test_failure/trace.zip]]\n\n[[ATTACHMENT|../test_class/test_failure-retry1/trace.zip]]\n\n            "
+                                ),
+                            )
+                        ],
+                    )
+                ],
+            )
+        ],
+    ),
+    JUnitXMLJobTestSuites(
+        job=2,
+        test_suites=[
+            JUnitXMLTestSuites(
+                id="",
+                name="",
+                tests=1,
+                failures=0,
+                skipped=1,
+                errors=0,
+                time=1.2,
+                timestamp=None,
+                test_suites=[
+                    JUnitXMLTestSuite(
+                        name="test_class",
+                        timestamp="2024-01-02T00:00:00Z",
+                        hostname="local",
+                        tests=1,
+                        failures=0,
+                        skipped=1,
+                        time=1.2,
+                        errors=0,
+                        test_cases=[
+                            JUnitXMLTestCase(
+                                name="test_fixme",
+                                classname="test_class",
+                                time=1.2,
+                                properties=[JUnitXMLProperty(name="fixme", value="see JIRA-0000")],
+                                skipped=JUnitXMLSkipped(reason=None),
+                                failure=None,
+                                system_out=None,
+                            )
+                        ],
+                    )
+                ],
+            )
+        ],
+    ),
+    JUnitXMLJobTestSuites(
+        job=3,
+        test_suites=[
+            JUnitXMLTestSuites(
+                id="",
+                name="",
+                tests=1,
+                failures=0,
+                skipped=0,
+                errors=0,
+                time=1.3,
+                timestamp=None,
+                test_suites=[
+                    JUnitXMLTestSuite(
+                        name="test_class",
+                        timestamp="2024-01-03T00:00:00Z",
+                        hostname="local",
+                        tests=1,
+                        failures=0,
+                        skipped=0,
+                        time=1.3,
+                        errors=0,
+                        test_cases=[
+                            JUnitXMLTestCase(
+                                name="test_retry",
+                                classname="test_class",
+                                time=1.3,
+                                properties=None,
+                                skipped=None,
+                                failure=None,
+                                system_out=JUnitXMLSystemOut(
+                                    text="\n            \n            [[ATTACHMENT|../test_class/test_retry/trace.zip]]\n            \n            "
+                                ),
+                            )
+                        ],
+                    )
+                ],
+            )
+        ],
+    ),
+    JUnitXMLJobTestSuites(
+        job=4,
+        test_suites=[
+            JUnitXMLTestSuites(
+                id=None,
+                name="",
+                tests=1,
+                failures=0,
+                skipped=None,
+                errors=0,
+                time=1.4,
+                timestamp=None,
+                test_suites=[
+                    JUnitXMLTestSuite(
+                        name="test_class",
+                        timestamp="2024-01-04T00:00:00Z",
+                        hostname=None,
+                        tests=1,
+                        failures=0,
+                        skipped=1,
+                        time=1.4,
+                        errors=0,
+                        test_cases=[
+                            JUnitXMLTestCase(
+                                name="test_class",
+                                classname="test_skipped",
+                                time=1.4,
+                                properties=None,
+                                skipped=JUnitXMLSkipped(reason=None),
+                                failure=None,
+                                system_out=None,
+                            )
+                        ],
+                    )
+                ],
+            )
+        ],
+    ),
+    JUnitXMLJobTestSuites(
+        job=5,
+        test_suites=[
+            JUnitXMLTestSuites(
+                id=None,
+                name=None,
+                tests=None,
+                failures=None,
+                skipped=None,
+                errors=None,
+                time=None,
+                timestamp=None,
+                test_suites=[
+                    JUnitXMLTestSuite(
+                        name="test_class",
+                        timestamp="2024-01-05T00:00:00Z",
+                        hostname="ip-10-0-175-52",
+                        tests=1,
+                        failures=0,
+                        skipped=0,
+                        time=1.5,
+                        errors=0,
+                        test_cases=[
+                            JUnitXMLTestCase(
+                                name="test_class",
+                                classname="test_success",
+                                time=1.5,
+                                properties=None,
+                                skipped=None,
+                                failure=None,
+                                system_out=None,
+                            )
+                        ],
+                    )
+                ],
+            )
+        ],
+    ),
+]
+
+EXPECTED_ARTIFACT_RESULTS: list[SuiteReporterResult] = [
     SuiteReporterResult(
         repository="repo",
         workflow="main",
@@ -85,7 +430,8 @@ EXPECTED_ARTIFACT_RESULTS = [
         success=1,
     ),
 ]
-EXPECTED_METADATA_RESULTS = [
+
+EXPECTED_METADATA_RESULTS: list[SuiteReporterResult] = [
     SuiteReporterResult(
         repository="repo",
         workflow="main",
@@ -153,7 +499,8 @@ EXPECTED_METADATA_RESULTS = [
         unknown=1,
     ),
 ]
-EXPECTED_ARTIFACT_AND_METADATA_RESULTS = [
+
+EXPECTED_ARTIFACT_AND_METADATA_RESULTS: list[SuiteReporterResult] = [
     SuiteReporterResult(
         repository="repo",
         workflow="main",
@@ -230,7 +577,7 @@ EXPECTED_ARTIFACT_AND_METADATA_RESULTS = [
     ),
 ]
 
-EXPECTED_ARTIFACT_CSV = (
+EXPECTED_ARTIFACT_CSV: str = (
     "Repository,Workflow,Test Suite,Date,Timestamp,Job Number,Status,Execution Time,Job Execution Time,Run Time,Success,Failure,Skipped,Fixme,Unknown,Retry Count,Total,Success Rate (%),Failure Rate (%),Skipped Rate (%),Fixme Rate (%),Unknown Rate (%)\r\n"
     "repo,main,suite,2024-01-01,2024-01-01T00:00:00Z,1,failed,1.1,,1.1,0,1,0,0,0,1,1,0.0,100.0,0.0,0.0,0.0\r\n"
     "repo,main,suite,2024-01-02,2024-01-02T00:00:00Z,2,success,1.2,,1.2,0,0,1,1,0,0,1,0.0,0.0,100.0,100.0,0.0\r\n"
@@ -238,7 +585,8 @@ EXPECTED_ARTIFACT_CSV = (
     "repo,main,suite,2024-01-04,2024-01-04T00:00:00Z,4,success,1.4,,1.4,0,0,1,0,0,0,1,0.0,0.0,100.0,0.0,0.0\r\n"
     "repo,main,suite,2024-01-05,2024-01-05T00:00:00Z,5,success,1.5,,1.5,1,0,0,0,0,0,1,100.0,0.0,0.0,0.0,0.0\r\n"
 )
-EXPECTED_METADATA_CSV = (
+
+EXPECTED_METADATA_CSV: str = (
     "Repository,Workflow,Test Suite,Date,Timestamp,Job Number,Status,Execution Time,Job Execution Time,Run Time,Success,Failure,Skipped,Fixme,Unknown,Retry Count,Total,Success Rate (%),Failure Rate (%),Skipped Rate (%),Fixme Rate (%),Unknown Rate (%)\r\n"
     "repo,main,suite,2024-01-01,2024-01-01T00:00:00Z,1,failed,,3600.0,1.1,0,1,0,0,0,0,1,0.0,100.0,0.0,0.0,0.0\r\n"
     "repo,main,suite,2024-01-02,2024-01-02T00:00:00Z,2,success,,3600.0,1.2,0,0,1,0,0,0,1,0.0,0.0,100.0,0.0,0.0\r\n"
@@ -247,7 +595,8 @@ EXPECTED_METADATA_CSV = (
     "repo,main,suite,2024-01-05,2024-01-05T00:00:00Z,5,success,,3600.0,1.5,1,0,0,0,0,0,1,100.0,0.0,0.0,0.0,0.0\r\n"
     "repo,main,suite,2024-01-06,2024-01-06T00:00:00Z,6,unknown,,3600.0,1.6,0,0,0,0,1,0,1,0.0,0.0,0.0,0.0,100.0\r\n"
 )
-EXPECTED_ARTIFACT_AND_METADATA_CSV = (
+
+EXPECTED_ARTIFACT_AND_METADATA_CSV: str = (
     "Repository,Workflow,Test Suite,Date,Timestamp,Job Number,Status,Execution Time,Job Execution Time,Run Time,Success,Failure,Skipped,Fixme,Unknown,Retry Count,Total,Success Rate (%),Failure Rate (%),Skipped Rate (%),Fixme Rate (%),Unknown Rate (%)\r\n"
     "repo,main,suite,2024-01-01,2024-01-01T00:00:00Z,1,failed,1.1,3600.0,1.1,0,1,0,0,0,1,1,0.0,100.0,0.0,0.0,0.0\r\n"
     "repo,main,suite,2024-01-02,2024-01-02T00:00:00Z,2,success,1.2,3600.0,1.2,0,0,1,1,0,0,1,0.0,0.0,100.0,100.0,0.0\r\n"
@@ -259,58 +608,57 @@ EXPECTED_ARTIFACT_AND_METADATA_CSV = (
 
 
 @pytest.mark.parametrize(
-    "test_artifact_directory, test_metadata_directory, expected_results",
+    "circleci_job_test_metadata_list, junit_xml_job_test_suites_list, expected_results",
     [
-        (TEST_ARTIFACT_DIRECTORY_TEST_RESULTS, "", EXPECTED_ARTIFACT_RESULTS),
-        ("", TEST_METADATA_DIRECTORY_TEST_RESULTS, EXPECTED_METADATA_RESULTS),
+        (None, JUNIT_XML_JOB_TEST_SUITES_LIST, EXPECTED_ARTIFACT_RESULTS),
+        (CIRCLECI_JOB_TEST_METADATA_LIST, None, EXPECTED_METADATA_RESULTS),
         (
-            TEST_ARTIFACT_DIRECTORY_TEST_RESULTS,
-            TEST_METADATA_DIRECTORY_TEST_RESULTS,
+            CIRCLECI_JOB_TEST_METADATA_LIST,
+            JUNIT_XML_JOB_TEST_SUITES_LIST,
             EXPECTED_ARTIFACT_AND_METADATA_RESULTS,
         ),
-        ("", TEST_METADATA_DIRECTORY_EMPTY_TEST_RESULTS, []),
     ],
     ids=[
         "with_artifact_test_results",
         "with_metadata_test_results",
         "with_artifact_metadata_test_results",
-        "with_empty_test_results",
     ],
 )
 def test_suite_reporter_init(
-    test_artifact_directory: str,
-    test_metadata_directory: str,
+    circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None,
+    junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None,
     expected_results: list[SuiteReporterResult],
 ) -> None:
     """Test SuiteReporter initialization.
 
     Args:
-        test_artifact_directory (str): Directory for artifacts.
-        test_metadata_directory (str): Directory for metadata.
+        circleci_job_test_metadata_list (list[CircleCIJobTestMetadata] | None): CircleCI Metadata.
+        junit_xml_job_test_suites_list (list[JUnitXMLJobTestSuites] | None): JUnit XML data.
         expected_results (list[SuiteReporterResult]): Expected results from the SuiteReporter.
     """
-    args = MetricReporterArgs(
-        repository="repo",
-        workflow="main",
-        test_suite="suite",
-        test_artifact_directory_path=test_artifact_directory,
-        test_metadata_directory_path=test_metadata_directory,
-        csv_report_file_path="",
-    )
+    repository = "repo"
+    workflow = "main"
+    test_suite = "suite"
 
-    reporter = SuiteReporter(args)
+    reporter = SuiteReporter(
+        repository,
+        workflow,
+        test_suite,
+        circleci_job_test_metadata_list,
+        junit_xml_job_test_suites_list,
+    )
 
     assert reporter.results == expected_results
 
 
 @pytest.mark.parametrize(
-    "test_artifact_directory, test_metadata_directory, expected_csv",
+    "circleci_job_test_metadata_list, junit_xml_job_test_suites_list, expected_csv",
     [
-        (TEST_ARTIFACT_DIRECTORY_TEST_RESULTS, "", EXPECTED_ARTIFACT_CSV),
-        ("", TEST_METADATA_DIRECTORY_TEST_RESULTS, EXPECTED_METADATA_CSV),
+        (None, JUNIT_XML_JOB_TEST_SUITES_LIST, EXPECTED_ARTIFACT_CSV),
+        (CIRCLECI_JOB_TEST_METADATA_LIST, None, EXPECTED_METADATA_CSV),
         (
-            TEST_ARTIFACT_DIRECTORY_TEST_RESULTS,
-            TEST_METADATA_DIRECTORY_TEST_RESULTS,
+            CIRCLECI_JOB_TEST_METADATA_LIST,
+            JUNIT_XML_JOB_TEST_SUITES_LIST,
             EXPECTED_ARTIFACT_AND_METADATA_CSV,
         ),
     ],
@@ -322,27 +670,28 @@ def test_suite_reporter_init(
 )
 def test_suite_reporter_output_csv(
     mocker: MockerFixture,
-    test_artifact_directory: str,
-    test_metadata_directory: str,
+    circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None,
+    junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None,
     expected_csv: str,
 ) -> None:
     """Test SuiteReporter output_results_csv method with test results.
 
     Args:
         mocker (MockerFixture): pytest_mock fixture for mocking.
-        test_artifact_directory (str): Directory for artifacts.
-        test_metadata_directory (str): Directory for metadata.
+        circleci_job_test_metadata_list (list[CircleCIJobTestMetadata] | None): CircleCI Metadata.
+        junit_xml_job_test_suites_list (list[JUnitXMLJobTestSuites] | None): JUnit XML data.
         expected_csv (dtr): Expected csv output from the SuiteReporter.
     """
-    args = MetricReporterArgs(
-        repository="repo",
-        workflow="main",
-        test_suite="suite",
-        test_artifact_directory_path=test_artifact_directory,
-        test_metadata_directory_path=test_metadata_directory,
-        csv_report_file_path="",
+    repository = "repo"
+    workflow = "main"
+    test_suite = "suite"
+    reporter = SuiteReporter(
+        repository,
+        workflow,
+        test_suite,
+        circleci_job_test_metadata_list,
+        junit_xml_job_test_suites_list,
     )
-    reporter = SuiteReporter(args)
     report_path = "fake_path.csv"
 
     mock_open: MagicMock = mocker.mock_open()
@@ -366,15 +715,18 @@ def test_suite_reporter_output_csv_with_empty_test_results(
         caplog (LogCaptureFixture): pytest fixture for capturing log output.
         mocker (MockerFixture): pytest_mock fixture for mocking.
     """
-    args = MetricReporterArgs(
-        repository="repo",
-        workflow="main",
-        test_suite="suite",
-        test_artifact_directory_path="",
-        test_metadata_directory_path=TEST_METADATA_DIRECTORY_EMPTY_TEST_RESULTS,
-        csv_report_file_path="",
+    repository = "repo"
+    workflow = "main"
+    test_suite = "suite"
+    circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None = None
+    junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None = None
+    reporter = SuiteReporter(
+        repository,
+        workflow,
+        test_suite,
+        circleci_job_test_metadata_list,
+        junit_xml_job_test_suites_list,
     )
-    reporter = SuiteReporter(args)
     report_path = "fake_path.csv"
     expected_log = "No data to write to the CSV file."
 

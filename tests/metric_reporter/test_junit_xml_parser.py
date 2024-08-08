@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Tests for the SuiteReporter module."""
+"""Tests for the JUnitXmlParser module."""
 
 from pathlib import Path
 
@@ -543,6 +543,6 @@ def test_parse(
     """
     parser = JUnitXmlParser()
 
-    actual_results = parser.parse(test_artifact_directory)
+    actual_results: list[JUnitXMLJobTestSuites] = parser.parse(test_artifact_directory)
 
     assert actual_results == expected_results

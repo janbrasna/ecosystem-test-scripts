@@ -144,12 +144,13 @@ class JUnitXmlParser:
             JUnitXmlParserError: If the directory does not exist, or if there is an error reading or
                                  parsing the XML files.
         """
-        result: list[JUnitXMLJobTestSuites] = []
-
         test_artifact_path = Path(test_artifact_directory)
-        if not test_artifact_directory or not test_artifact_path.is_dir():
-            self.logger.warning(f"There are no test artifacts to parse in {test_artifact_path}")
-            return []
+        if not test_artifact_path.is_dir():
+            raise JUnitXmlParserError(
+                f"The test_artifact_directory, {test_artifact_directory}, does not exist"
+            )
+
+        result: list[JUnitXMLJobTestSuites] = []
 
         test_result_directories = sorted(test_artifact_path.iterdir())
         for directory in test_result_directories:

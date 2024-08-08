@@ -20,8 +20,8 @@ class MetricReporterArgs(BaseModel):
     repository: str
     workflow: str
     test_suite: str
-    test_artifact_directory_path: str
-    test_metadata_directory_path: str
+    test_metadata_directory: str
+    test_artifact_directory: str
     csv_report_file_path: str
 
 
@@ -76,8 +76,8 @@ class Config(BaseConfig):
         #     ├── repository/
         #         ├── workflow/
         #             ├── test_suite/
-        #                 ├── test_artifact_dir/
         #                 ├── test_metadata_dir/
+        #                 ├── test_artifact_dir/
         try:
             test_metric_args_list: list[MetricReporterArgs] = []
             test_result_dir_path = Path(self.common_config.test_result_dir)
@@ -96,8 +96,8 @@ class Config(BaseConfig):
                             repository=repository_name,
                             workflow=directory_path.name,
                             test_suite=directory_name,
-                            test_artifact_directory_path=str(artifact_path),
-                            test_metadata_directory_path=str(metadata_path),
+                            test_metadata_directory=str(metadata_path),
+                            test_artifact_directory=str(artifact_path),
                             csv_report_file_path=str(
                                 Path(self.metric_reporter_config.reports_dir)
                                 / csv_report_file_name
