@@ -288,7 +288,7 @@ class SuiteReporter:
             execution_times: list[float] = []
             for suites in artifact.test_suites:
                 run_time: float = 0
-                # Jest and Playwright JUnit XMLs only have a top level time. The top level time may
+                # A top level test_suites time is not always available. The top level time may
                 # not be equal to the sum of the test case times due to the use of threads/workers.
                 execution_time: float | None = (
                     suites.time if suites.time and suites.time > 0 else None
