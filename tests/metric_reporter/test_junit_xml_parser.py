@@ -20,8 +20,6 @@ from scripts.metric_reporter.junit_xml_parser import (
     JUnitXMLTestSuites,
 )
 
-
-XML_SAMPLES_JEST = str(Path(__file__).parent / "test_data" / "xml_samples_jest")
 EXPECTED_JEST = [
     JUnitXMLJobTestSuites(
         job=1,
@@ -96,7 +94,6 @@ EXPECTED_JEST = [
     )
 ]
 
-XML_SAMPLES_MOCHA = str(Path(__file__).parent / "test_data" / "xml_samples_mocha")
 EXPECTED_MOCHA = [
     JUnitXMLJobTestSuites(
         job=1,
@@ -175,7 +172,6 @@ EXPECTED_MOCHA = [
     )
 ]
 
-XML_SAMPLES_PLAYWRIGHT = str(Path(__file__).parent / "test_data" / "xml_samples_playwright")
 EXPECTED_PLAYWRIGHT = [
     JUnitXMLJobTestSuites(
         job=1,
@@ -366,7 +362,6 @@ EXPECTED_PLAYWRIGHT = [
     )
 ]
 
-XML_SAMPLES_PYTEST = str(Path(__file__).parent / "test_data" / "xml_samples_pytest")
 EXPECTED_PYTEST = [
     JUnitXMLJobTestSuites(
         job=1,
@@ -478,7 +473,6 @@ EXPECTED_PYTEST = [
     )
 ]
 
-XML_SAMPLES_TAP = str(Path(__file__).parent / "test_data" / "xml_samples_tap")
 EXPECTED_TAP = [
     JUnitXMLJobTestSuites(
         job=1,
@@ -522,27 +516,31 @@ EXPECTED_TAP = [
 
 
 @pytest.mark.parametrize(
-    "test_artifact_directory, expected_results",
+    "artifact_directory, expected_results",
     [
-        (XML_SAMPLES_JEST, EXPECTED_JEST),
-        (XML_SAMPLES_MOCHA, EXPECTED_MOCHA),
-        (XML_SAMPLES_PLAYWRIGHT, EXPECTED_PLAYWRIGHT),
-        (XML_SAMPLES_PYTEST, EXPECTED_PYTEST),
-        (XML_SAMPLES_TAP, EXPECTED_TAP),
+        ("xml_samples_jest", EXPECTED_JEST),
+        ("xml_samples_mocha", EXPECTED_MOCHA),
+        ("xml_samples_playwright", EXPECTED_PLAYWRIGHT),
+        ("xml_samples_pytest", EXPECTED_PYTEST),
+        ("xml_samples_tap", EXPECTED_TAP),
     ],
     ids=["jest", "mocha", "playwright", "pytest", "tap"],
 )
 def test_parse(
-    test_artifact_directory: str, expected_results: list[JUnitXMLJobTestSuites]
+    test_data_directory: Path,
+    artifact_directory: str,
+    expected_results: list[JUnitXMLJobTestSuites],
 ) -> None:
     """Test JUnitXmlParser parse method with various test data.
 
     Args:
-        test_artifact_directory (str): Specific test data directory to load.
+        test_data_directory (Path): Test data directory for the Metric Reporter.
+        artifact_directory (str): Test data directory name.
         expected_results (list[SuiteReporterResult]): Expected results from the JUnitXmlParser.
     """
+    artifact_path = test_data_directory / artifact_directory
     parser = JUnitXmlParser()
 
-    actual_results: list[JUnitXMLJobTestSuites] = parser.parse(test_artifact_directory)
+    actual_results: list[JUnitXMLJobTestSuites] = parser.parse(artifact_path)
 
     assert actual_results == expected_results

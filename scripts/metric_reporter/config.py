@@ -20,9 +20,9 @@ class MetricReporterArgs(BaseModel):
     repository: str
     workflow: str
     test_suite: str
-    test_metadata_directory: str
-    test_artifact_directory: str
-    csv_report_file_path: str
+    metadata_path: Path
+    artifact_path: Path
+    csv_report_path: Path
 
 
 class MetricReporterConfig(BaseModel):
@@ -76,31 +76,28 @@ class Config(BaseConfig):
         #     ├── repository/
         #         ├── workflow/
         #             ├── test_suite/
-        #                 ├── test_metadata_dir/
-        #                 ├── test_artifact_dir/
+        #                 ├── metadata_dir/
+        #                 ├── artifact_dir/
         try:
             test_metric_args_list: list[MetricReporterArgs] = []
-            test_result_dir_path = Path(self.common_config.test_result_dir)
-            for directory_path, directory_names, files in test_result_dir_path.walk():
+            test_result_path = Path(self.common_config.test_result_dir)
+            for directory_path, directory_names, files in test_result_path.walk():
                 for directory_name in directory_names:
                     current_path = Path(directory_path) / directory_name
                     artifact_path = current_path / self.common_config.test_artifact_dir
                     metadata_path = current_path / self.common_config.test_metadata_dir
                     if artifact_path.exists() or metadata_path.exists():
-                        repository_name = self._normalize_name(
-                            Path(directory_path).parents[0].name
-                        )
-                        test_suite_name = self._normalize_name(directory_name, "_")
-                        csv_report_file_name = f"{repository_name}_{test_suite_name}_results.csv"
+                        repository = self._normalize_name(Path(directory_path).parents[0].name)
+                        test_suite = self._normalize_name(directory_name, "_")
                         test_metric_args = MetricReporterArgs(
-                            repository=repository_name,
+                            repository=repository,
                             workflow=directory_path.name,
-                            test_suite=directory_name,
-                            test_metadata_directory=str(metadata_path),
-                            test_artifact_directory=str(artifact_path),
-                            csv_report_file_path=str(
+                            test_suite=test_suite,
+                            metadata_path=metadata_path,
+                            artifact_path=artifact_path,
+                            csv_report_path=(
                                 Path(self.metric_reporter_config.reports_dir)
-                                / csv_report_file_name
+                                / f"{repository}_{test_suite}_results.csv"
                             ),
                         )
                         test_metric_args_list.append(test_metric_args)

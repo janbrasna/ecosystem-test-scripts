@@ -5,6 +5,7 @@
 """Tests for the SuiteReporter module."""
 
 import logging
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -608,7 +609,7 @@ EXPECTED_ARTIFACT_AND_METADATA_CSV: str = (
 
 
 @pytest.mark.parametrize(
-    "circleci_job_test_metadata_list, junit_xml_job_test_suites_list, expected_results",
+    "metadata_list, artifact_list, expected_results",
     [
         (None, JUNIT_XML_JOB_TEST_SUITES_LIST, EXPECTED_ARTIFACT_RESULTS),
         (CIRCLECI_JOB_TEST_METADATA_LIST, None, EXPECTED_METADATA_RESULTS),
@@ -625,34 +626,28 @@ EXPECTED_ARTIFACT_AND_METADATA_CSV: str = (
     ],
 )
 def test_suite_reporter_init(
-    circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None,
-    junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None,
+    metadata_list: list[CircleCIJobTestMetadata] | None,
+    artifact_list: list[JUnitXMLJobTestSuites] | None,
     expected_results: list[SuiteReporterResult],
 ) -> None:
     """Test SuiteReporter initialization.
 
     Args:
-        circleci_job_test_metadata_list (list[CircleCIJobTestMetadata] | None): CircleCI Metadata.
-        junit_xml_job_test_suites_list (list[JUnitXMLJobTestSuites] | None): JUnit XML data.
+        metadata_list (list[CircleCIJobTestMetadata] | None): CircleCI Metadata.
+        artifact_list (list[JUnitXMLJobTestSuites] | None): JUnit XML data.
         expected_results (list[SuiteReporterResult]): Expected results from the SuiteReporter.
     """
     repository = "repo"
     workflow = "main"
     test_suite = "suite"
 
-    reporter = SuiteReporter(
-        repository,
-        workflow,
-        test_suite,
-        circleci_job_test_metadata_list,
-        junit_xml_job_test_suites_list,
-    )
+    reporter = SuiteReporter(repository, workflow, test_suite, metadata_list, artifact_list)
 
     assert reporter.results == expected_results
 
 
 @pytest.mark.parametrize(
-    "circleci_job_test_metadata_list, junit_xml_job_test_suites_list, expected_csv",
+    "metadata_list, artifact_list, expected_csv",
     [
         (None, JUNIT_XML_JOB_TEST_SUITES_LIST, EXPECTED_ARTIFACT_CSV),
         (CIRCLECI_JOB_TEST_METADATA_LIST, None, EXPECTED_METADATA_CSV),
@@ -669,30 +664,26 @@ def test_suite_reporter_init(
     ],
 )
 def test_suite_reporter_output_csv(
+    test_data_directory: Path,
     mocker: MockerFixture,
-    circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None,
-    junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None,
+    metadata_list: list[CircleCIJobTestMetadata] | None,
+    artifact_list: list[JUnitXMLJobTestSuites] | None,
     expected_csv: str,
 ) -> None:
     """Test SuiteReporter output_results_csv method with test results.
 
     Args:
+        test_data_directory (Path): Test data directory for the Metric Reporter.
         mocker (MockerFixture): pytest_mock fixture for mocking.
-        circleci_job_test_metadata_list (list[CircleCIJobTestMetadata] | None): CircleCI Metadata.
-        junit_xml_job_test_suites_list (list[JUnitXMLJobTestSuites] | None): JUnit XML data.
+        metadata_list (list[CircleCIJobTestMetadata] | None): CircleCI Metadata.
+        artifact_list (list[JUnitXMLJobTestSuites] | None): JUnit XML data.
         expected_csv (dtr): Expected csv output from the SuiteReporter.
     """
     repository = "repo"
     workflow = "main"
     test_suite = "suite"
-    reporter = SuiteReporter(
-        repository,
-        workflow,
-        test_suite,
-        circleci_job_test_metadata_list,
-        junit_xml_job_test_suites_list,
-    )
-    report_path = "fake_path.csv"
+    reporter = SuiteReporter(repository, workflow, test_suite, metadata_list, artifact_list)
+    report_path = test_data_directory / "fake_path.csv"
 
     mock_open: MagicMock = mocker.mock_open()
     mocker.patch("builtins.open", mock_open)
@@ -707,27 +698,22 @@ def test_suite_reporter_output_csv(
 
 
 def test_suite_reporter_output_csv_with_empty_test_results(
-    caplog: LogCaptureFixture, mocker: MockerFixture
+    test_data_directory: Path, caplog: LogCaptureFixture, mocker: MockerFixture
 ) -> None:
     """Test SuiteReporter output_results_csv method with no test results.
 
     Args:
+        test_data_directory (Path): Test data directory for the Metric Reporter.
         caplog (LogCaptureFixture): pytest fixture for capturing log output.
         mocker (MockerFixture): pytest_mock fixture for mocking.
     """
     repository = "repo"
     workflow = "main"
     test_suite = "suite"
-    circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None = None
-    junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None = None
-    reporter = SuiteReporter(
-        repository,
-        workflow,
-        test_suite,
-        circleci_job_test_metadata_list,
-        junit_xml_job_test_suites_list,
-    )
-    report_path = "fake_path.csv"
+    metadata_list: list[CircleCIJobTestMetadata] | None = None
+    artifact_list: list[JUnitXMLJobTestSuites] | None = None
+    reporter = SuiteReporter(repository, workflow, test_suite, metadata_list, artifact_list)
+    report_path = test_data_directory / "fake_path.csv"
     expected_log = "No data to write to the CSV file."
 
     with caplog.at_level(logging.INFO):

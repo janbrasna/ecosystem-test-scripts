@@ -138,13 +138,13 @@ EXPECTED_UNKNOWN: list[CircleCIJobTestMetadata] = [
 
 
 @pytest.fixture
-def test_data_directory() -> Path:
-    """Provide the base path to the test data directory."""
-    return Path(__file__).parent / "test_data" / "circleci_json_samples"
+def circleci_json_samples_directory(test_data_directory: Path) -> Path:
+    """Provide the path to the circleci_json_samples directory."""
+    return test_data_directory / "circleci_json_samples"
 
 
 @pytest.mark.parametrize(
-    "test_metadata_directory, expected_results",
+    "metadata_directory, expected_results",
     [
         ("empty", EXPECTED_EMPTY),
         ("failure", EXPECTED_FAILURE),
@@ -155,19 +155,21 @@ def test_data_directory() -> Path:
     ids=["empty", "failure", "skipped", "success", "unknown"],
 )
 def test_parse(
-    test_data_directory: Path,
-    test_metadata_directory: str,
+    circleci_json_samples_directory: Path,
+    metadata_directory: str,
     expected_results: list[CircleCIJobTestMetadata],
 ) -> None:
     """Test CircleCIJsonParser parse method with various test data.
 
     Args:
-        test_metadata_directory (str): Specific test data directory to load.
-        expected_results (list[CircleCIJobTestMetadata]): Expected results from the CircleCIJsonParser.
+        circleci_json_samples_directory (Path): circleci_json_samples directory path.
+        metadata_directory (str): Test data directory name.
+        expected_results (list[CircleCIJobTestMetadata]): Expected results from the
+                                                          CircleCIJsonParser.
     """
-    test_metadata_directory_path = str(test_data_directory / test_metadata_directory)
+    metadata_path: Path = circleci_json_samples_directory / metadata_directory
     parser = CircleCIJsonParser()
 
-    actual_results: list[CircleCIJobTestMetadata] = parser.parse(test_metadata_directory_path)
+    actual_results: list[CircleCIJobTestMetadata] = parser.parse(metadata_path)
 
     assert actual_results == expected_results

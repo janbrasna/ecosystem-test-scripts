@@ -130,44 +130,35 @@ class JUnitXmlParser:
         ]
         return test_suite_dict
 
-    def parse(self, test_artifact_directory: str) -> list[JUnitXMLJobTestSuites]:
+    def parse(self, artifact_path: Path) -> list[JUnitXMLJobTestSuites]:
         """Parse JUnit XML content from the specified directory.
 
         Args:
-            test_artifact_directory (str): The path to the directory containing the JUnit XML test
-            files.
+            artifact_path (Path): The path to the directory containing the JUnit XML test files.
 
         Returns:
             list[JUnitXMLJobTestSuites]: A list of parsed `JUnitXMLJobTestSuites` objects.
 
         Raises:
-            JUnitXmlParserError: If the directory does not exist, or if there is an error reading or
-                                 parsing the XML files.
+            JUnitXmlParserError: If there is an error reading or parsing the XML files.
         """
-        test_artifact_path = Path(test_artifact_directory)
-        if not test_artifact_path.is_dir():
-            raise JUnitXmlParserError(
-                f"The test_artifact_directory, {test_artifact_directory}, does not exist"
-            )
-
-        result: list[JUnitXMLJobTestSuites] = []
-
-        test_result_directories = sorted(test_artifact_path.iterdir())
-        for directory in test_result_directories:
-            job_number = int(directory.name)
-            test_suites_list = []
-            xml_files = sorted(directory.glob("*.xml"))
-            for xml_file_path in xml_files:
-                self.logger.info(f"Parsing {xml_file_path}")
+        artifact_list: list[JUnitXMLJobTestSuites] = []
+        job_paths: list[Path] = sorted(artifact_path.iterdir())
+        for job_path in job_paths:
+            job_number = int(job_path.name)
+            test_suites_list: list[JUnitXMLTestSuites] = []
+            artifact_file_paths: list[Path] = sorted(job_path.glob("*.xml"))
+            for artifact_file_path in artifact_file_paths:
+                self.logger.info(f"Parsing {artifact_file_path}")
                 try:
-                    with xml_file_path.open() as xml_file:
+                    with artifact_file_path.open() as xml_file:
                         content: str = xml_file.read()
                         normalized_content: str = self._normalize_xml_content(content)
 
                         root = ElementTree.fromstring(normalized_content)
                         test_suites_dict: dict[str, Any] = root.attrib
                         test_suites_dict["test_suites"] = [
-                            self._parse_test_suite(test_suite, xml_file_path)
+                            self._parse_test_suite(test_suite, artifact_file_path)
                             for test_suite in root
                         ]
                         test_suites = JUnitXMLTestSuites(**test_suites_dict)
@@ -175,13 +166,14 @@ class JUnitXmlParser:
                         test_suites_list.append(test_suites)
                 except (OSError, ElementTree.ParseError, ValidationError) as error:
                     error_mapping: dict[type, str] = {
-                        OSError: f"Error reading the file {xml_file_path}",
-                        ElementTree.ParseError: f"Error parsing the XML in file {xml_file_path}",
-                        ValidationError: f"Unexpected value or schema in the file {xml_file_path}",
+                        OSError: f"Error reading the file {artifact_file_path}",
+                        ElementTree.ParseError: f"Invalid XML format for file {artifact_file_path}",
+                        ValidationError: f"Unexpected value or schema in file {artifact_file_path}",
                     }
                     error_msg = error_mapping[type(error)]
                     self.logger.error(error_msg, exc_info=error)
                     raise JUnitXmlParserError(error_msg, error)
-
-            result.append(JUnitXMLJobTestSuites(job=job_number, test_suites=test_suites_list))
-        return result
+            artifact_list.append(
+                JUnitXMLJobTestSuites(job=job_number, test_suites=test_suites_list)
+            )
+        return artifact_list

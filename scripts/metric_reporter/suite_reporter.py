@@ -175,37 +175,42 @@ class SuiteReporter:
         self,
         repository: str,
         workflow: str,
-        test_suite_name: str,
-        circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None,
-        junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None,
+        test_suite: str,
+        metadata_list: list[CircleCIJobTestMetadata] | None,
+        artifacts_list: list[JUnitXMLJobTestSuites] | None,
     ) -> None:
         """Initialize the reporter with the directory containing test result data.
 
         Args:
             repository (str): The repository associated to the test suite.
             workflow (str): The workflow associated to the test suite.
-            test_suite_name (str): The test suite name.
-            circleci_job_test_metadata_list (list[CircleCIJobTestMetadata]) The metadata from CircleCI test jobs.
-            junit_xml_job_test_suites_list (list[JUnitXMLJobTestSuites]) The test results from JUnit XML artifacts.
+            test_suite (str): The test suite name.
+            metadata_list (list[CircleCIJobTestMetadata]): The metadata from CircleCI test jobs.
+            artifacts_list (list[JUnitXMLJobTestSuites]): The test results from JUnit XML artifacts.
         """
-        self._repository = repository
-        self._workflow = workflow
-        self._test_suite_name = test_suite_name
         self.results: list[SuiteReporterResult] = self._parse_results(
-            circleci_job_test_metadata_list, junit_xml_job_test_suites_list
+            repository, workflow, test_suite, metadata_list, artifacts_list
         )
 
     def _parse_results(
         self,
-        circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None,
-        junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None,
+        repository: str,
+        workflow: str,
+        test_suite: str,
+        metadata_list: list[CircleCIJobTestMetadata] | None,
+        artifacts_list: list[JUnitXMLJobTestSuites] | None,
     ) -> list[SuiteReporterResult]:
-        metadata_results_dict: dict[int, SuiteReporterResult] = self._parse_circleci_metadata(
-            circleci_job_test_metadata_list
-        )
-        artifact_results_dict: dict[int, SuiteReporterResult] = self._parse_junit_xmls(
-            junit_xml_job_test_suites_list
-        )
+        metadata_results_dict: dict[int, SuiteReporterResult] = {}
+        if metadata_list:
+            metadata_results_dict = self._parse_metadata(
+                repository, workflow, test_suite, metadata_list
+            )
+
+        artifact_results_dict: dict[int, SuiteReporterResult] = {}
+        if artifacts_list:
+            artifact_results_dict = self._parse_artifacts(
+                repository, workflow, test_suite, artifacts_list
+            )
 
         # Reconcile data preferring artifact results, but use 'job_execution_time' from metadata
         # results if available
@@ -216,42 +221,42 @@ class SuiteReporter:
                 self._check_for_mismatch(artifact_result, metadata_result)
                 artifact_result.job_execution_time = metadata_result.job_execution_time
             results.append(artifact_result)
+
         # Add remaining metadata results that were not matched
         results.extend(metadata_results_dict.values())
 
         # Sort by timestamp and then by job
         sorted_results = sorted(results, key=lambda result: (result.timestamp, result.job))
+
         return sorted_results
 
-    def _parse_circleci_metadata(
-        self, circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None
+    @staticmethod
+    def _parse_metadata(
+        repository: str,
+        workflow: str,
+        test_suite: str,
+        metadata_list: list[CircleCIJobTestMetadata],
     ) -> dict[int, SuiteReporterResult]:
         results: dict[int, SuiteReporterResult] = {}
-        if not circleci_job_test_metadata_list:
-            return results
-
-        for job_test_metadata in circleci_job_test_metadata_list:
-            if (
-                not job_test_metadata.test_metadata
-                or job_test_metadata.job.status == CANCELED_JOB_STATUS
-            ):
+        for metadata in metadata_list:
+            if not metadata.test_metadata or metadata.job.status == CANCELED_JOB_STATUS:
                 continue
 
-            started_at = datetime.strptime(job_test_metadata.job.started_at, DATETIME_FORMAT)
-            stopped_at = datetime.strptime(job_test_metadata.job.stopped_at, DATETIME_FORMAT)
+            started_at = datetime.strptime(metadata.job.started_at, DATETIME_FORMAT)
+            stopped_at = datetime.strptime(metadata.job.stopped_at, DATETIME_FORMAT)
             job_execution_time = (stopped_at - started_at).total_seconds()
             test_suite_result = SuiteReporterResult(
-                repository=self._repository,
-                workflow=self._workflow,
-                test_suite=self._test_suite_name,
-                job=job_test_metadata.job.job_number,
+                repository=repository,
+                workflow=workflow,
+                test_suite=test_suite,
+                job=metadata.job.job_number,
                 date=started_at.strftime(DATE_FORMAT),
-                timestamp=job_test_metadata.job.started_at,
+                timestamp=metadata.job.started_at,
                 job_execution_time=job_execution_time,
             )
 
             run_time: float = 0
-            for test in job_test_metadata.test_metadata:
+            for test in metadata.test_metadata:
                 run_time += test.run_time
                 if test.result in SUCCESS_RESULTS:
                     test_suite_result.success += 1
@@ -263,74 +268,73 @@ class SuiteReporter:
                     test_suite_result.unknown += 1
             test_suite_result.run_time = round(run_time, 3)
 
-            results[job_test_metadata.job.job_number] = test_suite_result
+            results[metadata.job.job_number] = test_suite_result
         return results
 
-    def _parse_junit_xmls(
-        self, junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None
+    @staticmethod
+    def _parse_artifacts(
+        repository: str,
+        workflow: str,
+        test_suite: str,
+        artifacts_list: list[JUnitXMLJobTestSuites],
     ) -> dict[int, SuiteReporterResult]:
         results: dict[int, SuiteReporterResult] = {}
-        if not junit_xml_job_test_suites_list:
-            return results
-
-        for job_test_suites in junit_xml_job_test_suites_list:
+        for artifact in artifacts_list:
             test_suite_result = SuiteReporterResult(
-                repository=self._repository,
-                workflow=self._workflow,
-                test_suite=self._test_suite_name,
-                job=job_test_suites.job,
+                repository=repository, workflow=workflow, test_suite=test_suite, job=artifact.job
             )
 
             run_times: list[float] = []
             execution_times: list[float] = []
-            for test_suites in job_test_suites.test_suites:
+            for suites in artifact.test_suites:
                 run_time: float = 0
                 # Jest and Playwright JUnit XMLs only have a top level time. The top level time may
                 # not be equal to the sum of the test case times due to the use of threads/workers.
                 execution_time: float | None = (
-                    test_suites.time if test_suites.time and test_suites.time > 0 else None
+                    suites.time if suites.time and suites.time > 0 else None
                 )
-                for test_suite in test_suites.test_suites:
-                    if not test_suite_result.date and test_suite.timestamp:
-                        test_suite_result.timestamp = test_suite.timestamp
-                        test_suite_result.date = test_suite.timestamp.split("T")[0]
+                for suite in suites.test_suites:
+                    if not test_suite_result.date and suite.timestamp:
+                        test_suite_result.timestamp = suite.timestamp
+                        test_suite_result.date = suite.timestamp.split("T")[0]
 
                     # Mocha test reporting has been known to inaccurately total the number of tests
                     # in the 'tests' attribute, so we count the number of test cases
-                    tests = len(test_suite.test_cases)
-                    skipped = test_suite.skipped if test_suite.skipped else 0
-                    test_suite_result.failure += test_suite.failures
+                    tests = len(suite.test_cases)
+                    skipped = suite.skipped if suite.skipped else 0
+                    test_suite_result.failure += suite.failures
                     test_suite_result.skipped += skipped
-                    test_suite_result.success += tests - test_suite.failures - skipped
+                    test_suite_result.success += tests - suite.failures - skipped
 
-                    for test_case in test_suite.test_cases:
+                    for case in suite.test_cases:
                         # Summing the time for each test case if test_suite.time is not available
-                        if test_case.time:
-                            run_time += test_case.time
+                        if case.time:
+                            run_time += case.time
 
-                        # Increment "fixme" count , Playwright only
-                        if test_case.properties and any(
-                            prop.name == "fixme" for prop in test_case.properties
-                        ):
+                        # Increment "fixme" count, Playwright only
+                        if case.properties and any(p.name == "fixme" for p in case.properties):
                             test_suite_result.fixme += 1
 
-                        # Check for retry condition
+                        # Check for retry condition, Playwright only
                         # An assumption is made that the presence of a nested system-out tag in a
                         # test case that contains a link to a trace.zip attachment file as content
-                        # is the result of a retry in Playwright.
+                        # is the result of a retry.
                         if (
-                            test_case.system_out
-                            and test_case.system_out.text
-                            and "trace.zip" in test_case.system_out.text
+                            case.system_out
+                            and case.system_out.text
+                            and "trace.zip" in case.system_out.text
                         ):
                             test_suite_result.retry += 1
+
                 run_times.append(run_time)
                 # If a time at the test suites level is not provided, then use the summation of
                 # times at the test case level, or run_time.
                 execution_times.append(execution_time if execution_time is not None else run_time)
+
             test_suite_result.run_time = round(sum(run_times), 3)
             test_suite_result.execution_time = round(max(execution_times), 3)
-            results[job_test_suites.job] = test_suite_result
+            results[artifact.job] = test_suite_result
+
         return results
 
     def _check_for_mismatch(
@@ -366,18 +370,18 @@ class SuiteReporter:
                 f"Mismatched Fields: {mismatches}"
             )
 
-    def output_results_csv(self, report_path: str) -> None:
+    def output_results_csv(self, report_path: Path) -> None:
         """Output the test suite results to a CSV file.
 
         Args:
-            report_path (str): Path to the file where the CSV report will be saved.
+            report_path (PAth): Path to the file where the CSV report will be saved.
 
         Raises:
-            SuiteReporterError: If the report file cannot be created or written to, or if
-                                          there is an issue with the test data.
+            SuiteReporterError: If the report file cannot be created or written to, or if there is
+                                an issue with the test data.
         """
         try:
-            Path(report_path).parent.mkdir(parents=True, exist_ok=True)
+            report_path.parent.mkdir(parents=True, exist_ok=True)
             if not self.results:
                 self.logger.info("No data to write to the CSV file.")
                 return

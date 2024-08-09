@@ -25,35 +25,28 @@ def main(config_file: str = "config.ini") -> None:
     """Run the Metric Reporter.
 
     Args:
-        config_file (str): Path to the configuration file. Defaults to 'ecosystem-test-scripts/config.ini'.
+        config_file (str): Path to the configuration file.
+                           Defaults to 'ecosystem-test-scripts/config.ini'.
     """
     try:
         logger.info(f"Starting Metric Reporter with configuration file: {config_file}")
         config = Config(config_file)
-        for metric_reporter_args in config.metric_reporter_args:
-            circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None = None
-            if metric_reporter_args.test_metadata_directory:
+        for args in config.metric_reporter_args:
+            logger.info(f"Reporting for {args.repository} {args.workflow} {args.test_suite}")
+            metadata_list: list[CircleCIJobTestMetadata] | None = None
+            if args.metadata_path.is_dir():
                 circleci_parser = CircleCIJsonParser()
-                circleci_job_test_metadata_list = circleci_parser.parse(
-                    metric_reporter_args.test_metadata_directory
-                )
+                metadata_list = circleci_parser.parse(args.metadata_path)
 
-            junit_xml_job_test_suites_list: list[JUnitXMLJobTestSuites] | None = None
-            if metric_reporter_args.test_artifact_directory:
+            artifact_list: list[JUnitXMLJobTestSuites] | None = None
+            if args.artifact_path.is_dir():
                 junit_xml_parser = JUnitXmlParser()
-                junit_xml_job_test_suites_list = junit_xml_parser.parse(
-                    metric_reporter_args.test_artifact_directory
-                )
+                artifact_list = junit_xml_parser.parse(args.artifact_path)
 
             reporter = SuiteReporter(
-                metric_reporter_args.repository,
-                metric_reporter_args.workflow,
-                metric_reporter_args.test_suite,
-                circleci_job_test_metadata_list,
-                junit_xml_job_test_suites_list,
+                args.repository, args.workflow, args.test_suite, metadata_list, artifact_list
             )
-            reporter.output_results_csv(metric_reporter_args.csv_report_file_path)
-
+            reporter.output_results_csv(args.csv_report_path)
         logger.info("Reporting complete")
     except InvalidConfigError as error:
         logger.error(f"Configuration error: {error}")
@@ -68,5 +61,5 @@ def main(config_file: str = "config.ini") -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the Metric Reporter")
     parser.add_argument("--config", help="Path to the config.ini file", default="config.ini")
-    args = parser.parse_args()
-    main(args.config)
+    parser_args = parser.parse_args()
+    main(parser_args.config)
