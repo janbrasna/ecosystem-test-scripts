@@ -13,7 +13,11 @@ from scripts.metric_reporter.circleci_json_parser import (
     CircleCIJobTestMetadata,
 )
 from scripts.metric_reporter.config import Config, InvalidConfigError
-from scripts.metric_reporter.junit_xml_parser import JUnitXmlParser, JUnitXMLJobTestSuites
+from scripts.metric_reporter.junit_xml_parser import (
+    JUnitXMLJobTestSuites,
+    JUnitXmlParser,
+    JUnitXmlParserError,
+)
 from scripts.metric_reporter.suite_reporter import SuiteReporter, SuiteReporterError
 
 # Configure logging
@@ -52,6 +56,8 @@ def main(config_file: str = "config.ini") -> None:
         logger.error(f"Configuration error: {error}")
     except CircleCIJsonParserError as error:
         logger.error(f"CircleCI JSON Parsing error: {error}")
+    except JUnitXmlParserError as error:
+        logger.error(f"JUnit XML Parsing error: {error}")
     except SuiteReporterError as error:
         logger.error(f"Test Suite Reporter error: {error}")
     except Exception as error:
