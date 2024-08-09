@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="1" failures="1" errors="0" time="0.017">
+  <testsuite name="useCheckboxStateResult" errors="0" failures="1" skipped="0" timestamp="2024-07-13T00:21:53" time="0.017" tests="1">
+    <testcase classname="useInfoBoxMessage coupon type is &quot;repeating&quot; plan interval equal to coupon duration" name="useInfoBoxMessage coupon type is &quot;repeating&quot; plan interval equal to coupon duration" time="0.017">
+      <failure>Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found &lt;div data-testid=&quot;couponDurationDate-container&quot;&gt;&lt;span data-testid=&quot;couponDurationDate&quot;&gt;1723508531&lt;/span&gt;&lt;/div&gt; instead
+    at Object.&lt;anonymous&gt; (/home/circleci/project/packages/fxa-payments-server/src/lib/hooks.test.tsx:383:11)
+    at Promise.then.completed (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/utils.js:391:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/utils.js:316:10)
+    at _callCircusTest (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/run.js:218:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/run.js:155:3)
+    at _runTestsForDescribeBlock (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/run.js:66:9)
+    at _runTestsForDescribeBlock (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/run.js:60:9)
+    at run (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/run.js:25:3)
+    at runAndTransformResultsToJestFormat (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:170:21)
+    at jestAdapter (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:82:19)
+    at runTestInternal (/home/circleci/project/node_modules/react-scripts/node_modules/jest-runner/build/runTest.js:389:16)
+    at runTest (/home/circleci/project/node_modules/react-scripts/node_modules/jest-runner/build/runTest.js:475:34)
+    at Object.worker (/home/circleci/project/node_modules/react-scripts/node_modules/jest-runner/build/testWorker.js:133:12)</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -28,6 +28,43 @@ EXPECTED_JEST = [
                 id=None,
                 name="jest tests",
                 tests=1,
+                failures=1,
+                skipped=None,
+                errors=0,
+                time=0.017,
+                timestamp=None,
+                test_suites=[
+                    JUnitXMLTestSuite(
+                        name="useCheckboxStateResult",
+                        timestamp="2024-07-13T00:21:53",
+                        hostname=None,
+                        tests=1,
+                        failures=1,
+                        skipped=0,
+                        time=0.017,
+                        errors=0,
+                        test_cases=[
+                            JUnitXMLTestCase(
+                                name='useInfoBoxMessage coupon type is "repeating" plan interval equal to coupon duration',
+                                classname='useInfoBoxMessage coupon type is "repeating" plan interval equal to coupon duration',
+                                time=0.017,
+                                properties=None,
+                                skipped=None,
+                                failure=JUnitXMLFailure(
+                                    message=None,
+                                    type=None,
+                                    text='Error: expect(element).not.toBeInTheDocument()\n\nexpected document not to contain element, found <div data-testid="couponDurationDate-container"><span data-testid="couponDurationDate">1723508531</span></div> instead\n    at Object.<anonymous> (/home/circleci/project/packages/fxa-payments-server/src/lib/hooks.test.tsx:383:11)\n    at Promise.then.completed (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/utils.js:391:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/utils.js:316:10)\n    at _callCircusTest (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/run.js:218:40)\n    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at _runTest (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/run.js:155:3)\n    at _runTestsForDescribeBlock (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/run.js:66:9)\n    at _runTestsForDescribeBlock (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/run.js:60:9)\n    at run (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/run.js:25:3)\n    at runAndTransformResultsToJestFormat (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:170:21)\n    at jestAdapter (/home/circleci/project/node_modules/react-scripts/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:82:19)\n    at runTestInternal (/home/circleci/project/node_modules/react-scripts/node_modules/jest-runner/build/runTest.js:389:16)\n    at runTest (/home/circleci/project/node_modules/react-scripts/node_modules/jest-runner/build/runTest.js:475:34)\n    at Object.worker (/home/circleci/project/node_modules/react-scripts/node_modules/jest-runner/build/testWorker.js:133:12)',
+                                ),
+                                system_out=None,
+                            )
+                        ],
+                    )
+                ],
+            ),
+            JUnitXMLTestSuites(
+                id=None,
+                name="jest tests",
+                tests=1,
                 failures=0,
                 skipped=None,
                 errors=0,
