@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Configuration handling for the MetricReporter."""
+"""Configuration handling for the Metric Reporter."""
 
 import logging
 import re
@@ -15,7 +15,7 @@ from scripts.common.config import BaseConfig, InvalidConfigError, DIRECTORY_PATT
 
 
 class MetricReporterArgs(BaseModel):
-    """Model for MetricReporter arguments."""
+    """Model for Metric Reporter arguments."""
 
     repository: str
     workflow: str
@@ -26,13 +26,13 @@ class MetricReporterArgs(BaseModel):
 
 
 class MetricReporterConfig(BaseModel):
-    """Model for MetricReporter configuration."""
+    """Model for Metric Reporter configuration."""
 
     reports_dir: str = Field(..., pattern=DIRECTORY_PATTERN)
 
 
 class Config(BaseConfig):
-    """Configuration handler for the MetricReporter."""
+    """Configuration handler for the Metric Reporter."""
 
     logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class Config(BaseConfig):
 
         Raises:
             InvalidConfigError: If the configuration file contains missing or invalid values,
-                                or if an error occurs while building metric reporter arguments.
+                                or if an error occurs while building Metric Reporter arguments.
         """
         super().__init__(config_file)
         self.metric_reporter_config: MetricReporterConfig = self._parse_metric_reporter_config()
@@ -108,9 +108,9 @@ class Config(BaseConfig):
             return test_metric_args_list
         except (OSError, ValidationError) as error:
             error_mapping: dict[type, str] = {
-                OSError: "Filesystem error while building MetricReporter arguments",
+                OSError: "Filesystem error while building Metric Reporter arguments",
                 ValidationError: (
-                    "Unexpected value or schema while building MetricReporter arguments"
+                    "Unexpected value or schema while building Metric Reporter arguments"
                 ),
             }
             error_msg: str = error_mapping[type(error)]

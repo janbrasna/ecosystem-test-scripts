@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Main module for running the MetricReporter."""
+"""Main module for running the Metric Reporter."""
 
 import argparse
 import logging
@@ -22,13 +22,13 @@ logger = logging.getLogger(__name__)
 
 
 def main(config_file: str = "config.ini") -> None:
-    """Run the MetricReporter.
+    """Run the Metric Reporter.
 
     Args:
         config_file (str): Path to the configuration file. Defaults to 'ecosystem-test-scripts/config.ini'.
     """
     try:
-        logger.info(f"Starting MetricReporter with configuration file: {config_file}")
+        logger.info(f"Starting Metric Reporter with configuration file: {config_file}")
         config = Config(config_file)
         for metric_reporter_args in config.metric_reporter_args:
             circleci_job_test_metadata_list: list[CircleCIJobTestMetadata] | None = None
@@ -66,7 +66,7 @@ def main(config_file: str = "config.ini") -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run the MetricReporter")
+    parser = argparse.ArgumentParser(description="Run the Metric Reporter")
     parser.add_argument("--config", help="Path to the config.ini file", default="config.ini")
     args = parser.parse_args()
     main(args.config)
