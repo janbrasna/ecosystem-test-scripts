@@ -1,9 +1,14 @@
-name: Deploy Docs
+name: Publish Docs
 
 on:
+  workflow_dispatch: # allow manual runs
   push:
-    branches: ["docs"]
-  workflow_dispatch:
+    branches:
+      - docs  # == main
+    paths: # avoid unnecessary builds
+      - docs/**
+      - book.toml
+      - .github/workflows/docs.yml
 
 permissions:
   contents: read
@@ -11,8 +16,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: github-pages
+  cancel-in-progress: false # skip any intermediate builds but let finish
 
 jobs:
   build:
@@ -23,16 +28,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install mdBook
         run: cargo install --version ${MDBOOK_VERSION} mdbook
-      - name: Setup Pages
-        id: pages
+      - id: pages
         uses: actions/configure-pages@v5
-      - name: Build with mdBook
-        run: mdbook build
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - run: mdbook build
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: ./book
-
   deploy:
     environment:
       name: github-pages
@@ -40,6 +41,5 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
