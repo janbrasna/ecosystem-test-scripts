@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install mdBook
-        run: cargo install --version ${MDBOOK_VERSION} mdbook
+        run: cargo install mdbook@${MDBOOK_VERSION}
       - id: pages
         uses: actions/configure-pages@v5
       - run: mdbook build
